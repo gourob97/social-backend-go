@@ -1,13 +1,13 @@
 package router
 
 import (
-    "social-backend/internal/handler"
+    "social-backend/internal/controller"
 
-    "github.com/gofiber/fiber/v2"
+    "github.com/labstack/echo/v4"
 )
 
-func SetupRoutes(app *fiber.App) {
-    api := app.Group("/api")
-    api.Post("/register", handler.RegisterHandler)
-    api.Post("/login", handler.LoginHandler)
+func SetupRoutes(e *echo.Echo) {
+    api := e.Group("/api")
+    api.POST("/register", controller.RegisterController)
+    api.POST("/login", controller.LoginController)
 }

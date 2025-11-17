@@ -14,3 +14,6 @@ func GetUserByEmail(email string) (*model.User, error) {
     err := config.DB.Where("email = ?", email).First(&user).Error
     return &user, err
 }
+
+
+// 

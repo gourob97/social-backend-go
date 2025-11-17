@@ -1,27 +1,29 @@
 package main
 
 import (
-	"os"
     "log"
     "social-backend/internal/config"
     "social-backend/internal/router"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/fiber/v2/middleware/logger"
+    "github.com/labstack/echo/v4"
+    "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+    // Load config and connect to database
+    cfg := config.LoadConfig()
     config.ConnectDB()
 
-    app := fiber.New()
-    app.Use(logger.New())
+    e := echo.New()
+    e.Use(middleware.Logger())
+    e.Use(middleware.Recover())
 
-    router.SetupRoutes(app)
+    router.SetupRoutes(e)
 
-    port := os.Getenv("PORT")
+    port := cfg.Port
     if port == "" {
         port = "8080" // default
     }
 
-    log.Fatal(app.Listen(":" + port))
+    log.Fatal(e.Start(":" + port))
 }
