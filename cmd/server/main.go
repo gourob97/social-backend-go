@@ -4,12 +4,13 @@ import (
 	"log"
 	"social-backend/internal/config"
 	"social-backend/internal/controller"
+	"social-backend/internal/middleware"
 	"social-backend/internal/repository"
 	"social-backend/internal/router"
 	"social-backend/internal/service"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echomiddleware "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -28,8 +29,8 @@ func main() {
 	userController := controller.NewUserController(userService)
 
 	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	e.Use(middleware.EnhancedLogger())
+	e.Use(echomiddleware.Recover())
 
 	router.SetupRoutes(e, userController)
 
@@ -37,6 +38,9 @@ func main() {
 	if port == "" {
 		port = "8080" // default
 	}
+
+	// Show cute startup banner
+	middleware.PrintStartupBanner(port)
 
 	log.Fatal(e.Start(":" + port))
 }

@@ -36,3 +36,12 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Documentation (local only)
+docs/
+*.mermaid
+
+# Architecture diagrams (local development)
+architecture-*.png
+sequence-*.png
+flow-*.png
