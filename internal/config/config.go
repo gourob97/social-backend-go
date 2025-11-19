@@ -11,12 +11,10 @@ import (
 )
 
 type Config struct {
-	Port      string
+	Port        string
 	DatabaseURL string
-	JWTSecret string
+	JWTSecret   string
 }
-
-var DB *gorm.DB
 
 func LoadConfig() *Config {
 	err := godotenv.Load()
@@ -38,20 +36,20 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-func ConnectDB() {
+func ConnectDB() (*gorm.DB, error) {
 	config := LoadConfig()
-	
-	var err error
-	DB, err = gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
+
+	db, err := gorm.Open(mysql.Open(config.DatabaseURL), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		return nil, err
 	}
 
 	// Auto migrate the schema
-	err = DB.AutoMigrate(&model.User{})
+	err = db.AutoMigrate(&model.User{})
 	if err != nil {
-		log.Fatal("Failed to migrate database:", err)
+		return nil, err
 	}
 
 	log.Println("Database connected successfully!")
+	return db, nil
 }

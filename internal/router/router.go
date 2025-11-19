@@ -1,13 +1,13 @@
 package router
 
 import (
-    "social-backend/internal/controller"
+	"social-backend/internal/controller"
 
-    "github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4"
 )
 
-func SetupRoutes(e *echo.Echo) {
-    api := e.Group("/api")
-    api.POST("/register", controller.RegisterController)
-    api.POST("/login", controller.LoginController)
+func SetupRoutes(e *echo.Echo, userController *controller.UserController) {
+	api := e.Group("/api")
+	api.POST("/register", userController.RegisterController)
+	api.POST("/login", userController.LoginController)
 }

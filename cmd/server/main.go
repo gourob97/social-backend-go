@@ -1,29 +1,42 @@
 package main
 
 import (
-    "log"
-    "social-backend/internal/config"
-    "social-backend/internal/router"
+	"log"
+	"social-backend/internal/config"
+	"social-backend/internal/controller"
+	"social-backend/internal/repository"
+	"social-backend/internal/router"
+	"social-backend/internal/service"
 
-    "github.com/labstack/echo/v4"
-    "github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
-    // Load config and connect to database
-    cfg := config.LoadConfig()
-    config.ConnectDB()
+	// Load config
+	cfg := config.LoadConfig()
 
-    e := echo.New()
-    e.Use(middleware.Logger())
-    e.Use(middleware.Recover())
+	// Connect to database
+	db, err := config.ConnectDB()
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
 
-    router.SetupRoutes(e)
+	// Initialize dependencies with dependency injection
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo, cfg.JWTSecret)
+	userController := controller.NewUserController(userService)
 
-    port := cfg.Port
-    if port == "" {
-        port = "8080" // default
-    }
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
-    log.Fatal(e.Start(":" + port))
+	router.SetupRoutes(e, userController)
+
+	port := cfg.Port
+	if port == "" {
+		port = "8080" // default
+	}
+
+	log.Fatal(e.Start(":" + port))
 }
