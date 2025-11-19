@@ -28,11 +28,19 @@ func main() {
 	userService := service.NewUserService(userRepo, cfg.JWTSecret)
 	userController := controller.NewUserController(userService)
 
+	// Initialize post dependencies
+	postRepo := repository.NewPostRepository(db)
+	postService := service.NewPostService(postRepo)
+	postController := controller.NewPostController(postService)
+
+	// Initialize auth middleware
+	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
+
 	e := echo.New()
 	e.Use(middleware.EnhancedLogger())
 	e.Use(echomiddleware.Recover())
 
-	router.SetupRoutes(e, userController)
+	router.SetupRoutes(e, userController, postController, authMiddleware)
 
 	port := cfg.Port
 	if port == "" {

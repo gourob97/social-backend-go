@@ -45,7 +45,7 @@ func ConnectDB() (*gorm.DB, error) {
 	}
 
 	// Auto migrate the schema
-	err = db.AutoMigrate(&model.User{})
+	err = db.AutoMigrate(&model.User{}, &model.Post{})
 	if err != nil {
 		return nil, err
 	}

@@ -75,3 +75,12 @@ func NotFound(c echo.Context, message string) error {
 		Error:   message,
 	})
 }
+
+// Convenience functions to match controller usage
+func SuccessResponse(c echo.Context, statusCode int, message string, data interface{}) error {
+	return Success(c, statusCode, message, data)
+}
+
+func ErrorResponse(c echo.Context, err error) error {
+	return Error(c, err)
+}

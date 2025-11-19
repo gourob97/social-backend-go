@@ -45,3 +45,11 @@ func (v *Validator) formatValidationErrors(err error) string {
 
 	return strings.Join(errors, ", ")
 }
+
+// Global validator instance
+var globalValidator = NewValidator()
+
+// ValidateStruct validates a struct using the global validator
+func ValidateStruct(s interface{}) error {
+	return globalValidator.Validate(s)
+}
