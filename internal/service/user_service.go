@@ -1,6 +1,7 @@
 package service
 
 import (
+	"social-backend/internal/apperrors"
 	"social-backend/internal/auth"
 	"social-backend/internal/dto"
 	"social-backend/internal/model"
@@ -25,36 +26,41 @@ func NewUserService(userRepo interfaces.UserRepository, jwtSecret string) servic
 func (s *userService) RegisterUser(username, email, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return apperrors.ErrInternalServer
 	}
+
 	user := &model.User{
 		Username: username,
 		Email:    email,
 		Password: string(hashedPassword),
 	}
-	return s.userRepo.CreateUser(user)
+
+	if err := s.userRepo.CreateUser(user); err != nil {
+		return apperrors.ParseDatabaseError(err)
+	}
+
+	return nil
 }
 
 func (s *userService) LoginUser(email, password string) (*dto.LoginResponse, error) {
 	user, err := s.userRepo.GetUserByEmail(email)
 	if err != nil {
-		return nil, err
+		if apperrors.IsRecordNotFound(err) {
+			return nil, apperrors.ErrInvalidCredentials
+		}
+		return nil, apperrors.ErrInternalServer
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil {
-		return nil, err
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, apperrors.ErrInvalidCredentials
 	}
 
-	// Generate JWT token
 	token, err := s.jwtManager.GenerateToken(user.ID, user.Username, user.Email)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.ErrInternalServer
 	}
 
-	// Return safe user data with token
 	return &dto.LoginResponse{
-		Message: "Login successful",
 		User: dto.UserResponse{
 			ID:       user.ID,
 			Username: user.Username,
@@ -67,7 +73,10 @@ func (s *userService) LoginUser(email, password string) (*dto.LoginResponse, err
 func (s *userService) GetUserByID(id uint) (*dto.UserResponse, error) {
 	user, err := s.userRepo.GetUserByID(id)
 	if err != nil {
-		return nil, err
+		if apperrors.IsRecordNotFound(err) {
+			return nil, apperrors.ErrUserNotFound
+		}
+		return nil, apperrors.ErrInternalServer
 	}
 
 	return &dto.UserResponse{

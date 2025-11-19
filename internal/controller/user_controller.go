@@ -1,53 +1,59 @@
 package controller
 
 import (
+	"social-backend/internal/dto"
+	"social-backend/internal/response"
 	"social-backend/internal/service/interfaces"
+	"social-backend/internal/validation"
 
 	"github.com/labstack/echo/v4"
 )
 
 type UserController struct {
 	userService interfaces.UserService
+	validator   *validation.Validator
 }
 
 func NewUserController(userService interfaces.UserService) *UserController {
-	return &UserController{userService: userService}
+	return &UserController{
+		userService: userService,
+		validator:   validation.NewValidator(),
+	}
 }
 
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
+func (ctrl *UserController) RegisterController(c echo.Context) error {
+	var req dto.RegisterRequest
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func (uc *UserController) RegisterController(c echo.Context) error {
-	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(400, map[string]string{"error": "cannot parse body"})
+		return response.BadRequest(c, "Invalid request format")
 	}
 
-	if err := uc.userService.RegisterUser(req.Username, req.Email, req.Password); err != nil {
-		return c.JSON(400, map[string]string{"error": err.Error()})
+	if err := ctrl.validator.Validate(req); err != nil {
+		return response.BadRequest(c, err.Error())
 	}
 
-	return c.JSON(201, map[string]string{"message": "User registered successfully!"})
+	if err := ctrl.userService.RegisterUser(req.Username, req.Email, req.Password); err != nil {
+		return response.Error(c, err)
+	}
+
+	return response.Created(c, "User registered successfully", nil)
 }
 
-func (uc *UserController) LoginController(c echo.Context) error {
-	var req LoginRequest
+func (ctrl *UserController) LoginController(c echo.Context) error {
+	var req dto.LoginRequest
+
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(400, map[string]string{"error": "cannot parse body"})
+		return response.BadRequest(c, "Invalid request format")
 	}
 
-	loginResponse, err := uc.userService.LoginUser(req.Email, req.Password)
+	if err := ctrl.validator.Validate(req); err != nil {
+		return response.BadRequest(c, err.Error())
+	}
+
+	loginResp, err := ctrl.userService.LoginUser(req.Email, req.Password)
 	if err != nil {
-		return c.JSON(401, map[string]string{"error": "Invalid email or password"})
+		return response.Error(c, err)
 	}
 
-	return c.JSON(200, loginResponse)
+	return response.OK(c, "Login successful", loginResp)
 }
