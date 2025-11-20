@@ -2,6 +2,8 @@ package controller
 
 import (
 	"social-backend/services"
+	"social-backend/utils/errutil"
+	"social-backend/utils/msgutil"
 
 	"github.com/labstack/echo/v4"
 )
@@ -30,28 +32,36 @@ func ForNowUserController(service *services.UserService) *UserController {
 func (controller *UserController) RegisterUser(c echo.Context) error {
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(400, map[string]string{"error": "cannot parse body"})
+		return c.JSON(400, msgutil.RequestBodyParseErrorMessage())
 	}
 
 	if err := controller.service.RegisterUser(req.Username, req.Email, req.Password); err != nil {
-		return c.JSON(400, map[string]string{"error": err.Error()})
+		if err == errutil.ErrCreatingUser {
+			return c.JSON(500, msgutil.RegistrationFailureMessage())
+		}
+		return c.JSON(500, msgutil.InternalServerErrorMessage())
+
 	}
 
-	return c.JSON(201, map[string]string{"message": "User registered successfully!"})
+	return c.JSON(201, msgutil.RegistrationSuccessMessage())
 }
 
 func (controller *UserController) LoginUser(c echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(400, map[string]string{"error": "cannot parse body"})
+		return c.JSON(400, msgutil.RequestBodyParseErrorMessage())
 	}
 
 	user, err := controller.service.LoginUser(req.Email, req.Password)
 	if err != nil {
-		return c.JSON(401, map[string]string{"error": "Invalid email or password"})
+		switch err {
+		case errutil.ErrUserNotFound:
+			return c.JSON(404, msgutil.UserNotFoundMessage())
+		case errutil.ErrInvalidCredentials:
+			return c.JSON(401, msgutil.InvalidCredentialsMessage())
+		default:
+			return c.JSON(500, msgutil.InternalServerErrorMessage())
+		}
 	}
-	return c.JSON(200, map[string]interface{}{
-		"message": "Login successful",
-		"user":    user,
-	})
+	return c.JSON(200, msgutil.LoginSuccessMessage(*user))
 }
