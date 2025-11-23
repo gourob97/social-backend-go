@@ -9,18 +9,21 @@ import (
 )
 
 type postService struct {
-	postRepo interfaces.PostRepository
+	postRepo    interfaces.PostRepository
+	likeRepo    interfaces.LikeRepository
+	commentRepo interfaces.CommentRepository
 }
 
-func NewPostService(postRepo interfaces.PostRepository) serviceInterfaces.PostService {
+func NewPostService(postRepo interfaces.PostRepository, likeRepo interfaces.LikeRepository, commentRepo interfaces.CommentRepository) serviceInterfaces.PostService {
 	return &postService{
-		postRepo: postRepo,
+		postRepo:    postRepo,
+		likeRepo:    likeRepo,
+		commentRepo: commentRepo,
 	}
 }
 
 func (s *postService) CreatePost(userID uint, req *dto.CreatePostRequest) (*dto.PostResponse, error) {
 	post := &model.Post{
-		Title:   req.Title,
 		Content: req.Content,
 		UserID:  userID,
 	}
@@ -114,9 +117,6 @@ func (s *postService) UpdatePost(id uint, userID uint, req *dto.UpdatePostReques
 	}
 
 	// Update fields if provided
-	if req.Title != "" {
-		post.Title = req.Title
-	}
 	if req.Content != "" {
 		post.Content = req.Content
 	}
@@ -139,13 +139,21 @@ func (s *postService) DeletePost(id uint, userID uint) error {
 }
 
 func (s *postService) convertToPostResponse(post *model.Post) *dto.PostResponse {
+	// Get likes count
+	likesCount, _ := s.likeRepo.GetPostLikesCount(post.ID)
+
+	// Get comments count
+	commentsCount, _ := s.commentRepo.GetCommentsCountByPostID(post.ID)
+
 	return &dto.PostResponse{
-		ID:        post.ID,
-		Title:     post.Title,
-		Content:   post.Content,
-		UserID:    post.UserID,
-		Username:  post.User.Username,
-		CreatedAt: post.CreatedAt,
-		UpdatedAt: post.UpdatedAt,
+		ID:            post.ID,
+		Content:       post.Content,
+		UserID:        post.UserID,
+		Username:      post.User.Username,
+		CreatedAt:     post.CreatedAt,
+		UpdatedAt:     post.UpdatedAt,
+		LikesCount:    int(likesCount),
+		CommentsCount: int(commentsCount),
+		IsLiked:       false, // TODO: Check if current user liked this post
 	}
 }

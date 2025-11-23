@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	_ "social-backend/docs" // This line is necessary for swag to find your docs!
 	"social-backend/internal/config"
 	"social-backend/internal/controller"
 	"social-backend/internal/middleware"
@@ -11,7 +12,28 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
+
+// @title Social Backend API
+// @version 1.0
+// @description This is a social media backend API with user authentication, posts, likes, and comments
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	// Load config
@@ -30,8 +52,22 @@ func main() {
 
 	// Initialize post dependencies
 	postRepo := repository.NewPostRepository(db)
-	postService := service.NewPostService(postRepo)
+
+	// Initialize like dependencies
+	likeRepo := repository.NewLikeRepository(db)
+
+	// Initialize comment dependencies
+	commentRepo := repository.NewCommentRepository(db)
+
+	// Initialize services with all dependencies
+	postService := service.NewPostService(postRepo, likeRepo, commentRepo)
+	likeService := service.NewLikeService(likeRepo, postRepo)
+	commentService := service.NewCommentService(commentRepo, postRepo)
+
+	// Initialize controllers
 	postController := controller.NewPostController(postService)
+	likeController := controller.NewLikeController(likeService)
+	commentController := controller.NewCommentController(commentService)
 
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
@@ -40,7 +76,10 @@ func main() {
 	e.Use(middleware.EnhancedLogger())
 	e.Use(echomiddleware.Recover())
 
-	router.SetupRoutes(e, userController, postController, authMiddleware)
+	// Swagger endpoint
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	router.SetupRoutes(e, userController, postController, likeController, commentController, authMiddleware)
 
 	port := cfg.Port
 	if port == "" {

@@ -22,6 +22,19 @@ func NewPostController(postService interfaces.PostService) *PostController {
 	}
 }
 
+// CreatePostController handles creating a new post
+// @Summary Create a new post
+// @Description Create a new post with content
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param post body dto.CreatePostRequest true "Post data"
+// @Success 201 {object} response.APIResponse{data=dto.PostResponse}
+// @Failure 400 {object} response.APIResponse
+// @Failure 401 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Security ApiKeyAuth
+// @Router /api/posts [post]
 func (pc *PostController) CreatePostController(c echo.Context) error {
 	var req dto.CreatePostRequest
 
@@ -47,6 +60,17 @@ func (pc *PostController) CreatePostController(c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusCreated, "Post created successfully", post)
 }
 
+// GetPostController handles retrieving a specific post
+// @Summary Get a post by ID
+// @Description Retrieve a specific post by its ID
+// @Tags posts
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} response.APIResponse{data=dto.PostResponse}
+// @Failure 400 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/posts/{id} [get]
 func (pc *PostController) GetPostController(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -62,6 +86,18 @@ func (pc *PostController) GetPostController(c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, "Post retrieved successfully", post)
 }
 
+// GetUserPostsController handles retrieving posts by a specific user
+// @Summary Get posts by user ID
+// @Description Retrieve paginated posts created by a specific user
+// @Tags posts
+// @Produce json
+// @Param userId path int true "User ID"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page (max 100)" default(10)
+// @Success 200 {object} response.APIResponse{data=dto.PostsListResponse}
+// @Failure 400 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/users/{userId}/posts [get]
 func (pc *PostController) GetUserPostsController(c echo.Context) error {
 	userIDStr := c.Param("userId")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
@@ -80,6 +116,16 @@ func (pc *PostController) GetUserPostsController(c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, "Posts retrieved successfully", posts)
 }
 
+// GetAllPostsController handles retrieving all posts
+// @Summary Get all posts
+// @Description Retrieve paginated list of all posts
+// @Tags posts
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page (max 100)" default(10)
+// @Success 200 {object} response.APIResponse{data=dto.PostsListResponse}
+// @Failure 500 {object} response.APIResponse
+// @Router /api/posts [get]
 func (pc *PostController) GetAllPostsController(c echo.Context) error {
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
@@ -92,6 +138,22 @@ func (pc *PostController) GetAllPostsController(c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, "Posts retrieved successfully", posts)
 }
 
+// UpdatePostController handles updating a post
+// @Summary Update a post
+// @Description Update an existing post (only by post owner)
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param id path int true "Post ID"
+// @Param post body dto.UpdatePostRequest true "Updated post data"
+// @Success 200 {object} response.APIResponse{data=dto.PostResponse}
+// @Failure 400 {object} response.APIResponse
+// @Failure 401 {object} response.APIResponse
+// @Failure 403 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Security ApiKeyAuth
+// @Router /api/posts/{id} [put]
 func (pc *PostController) UpdatePostController(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -122,6 +184,20 @@ func (pc *PostController) UpdatePostController(c echo.Context) error {
 	return response.SuccessResponse(c, http.StatusOK, "Post updated successfully", post)
 }
 
+// DeletePostController handles deleting a post
+// @Summary Delete a post
+// @Description Delete an existing post (only by post owner)
+// @Tags posts
+// @Produce json
+// @Param id path int true "Post ID"
+// @Success 200 {object} response.APIResponse
+// @Failure 400 {object} response.APIResponse
+// @Failure 401 {object} response.APIResponse
+// @Failure 403 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Security ApiKeyAuth
+// @Router /api/posts/{id} [delete]
 func (pc *PostController) DeletePostController(c echo.Context) error {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

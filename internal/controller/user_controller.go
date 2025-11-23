@@ -21,6 +21,18 @@ func NewUserController(userService interfaces.UserService) *UserController {
 	}
 }
 
+// RegisterController handles user registration
+// @Summary Register a new user
+// @Description Create a new user account with username, email and password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body dto.RegisterRequest true "User registration data"
+// @Success 201 {object} response.APIResponse
+// @Failure 400 {object} response.APIResponse
+// @Failure 409 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/register [post]
 func (ctrl *UserController) RegisterController(c echo.Context) error {
 	var req dto.RegisterRequest
 
@@ -39,6 +51,18 @@ func (ctrl *UserController) RegisterController(c echo.Context) error {
 	return response.Created(c, "User registered successfully", nil)
 }
 
+// LoginController handles user authentication
+// @Summary Login user
+// @Description Authenticate user with email and password, returns JWT token
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param credentials body dto.LoginRequest true "User login credentials"
+// @Success 200 {object} response.APIResponse{data=dto.LoginResponse}
+// @Failure 400 {object} response.APIResponse
+// @Failure 401 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/login [post]
 func (ctrl *UserController) LoginController(c echo.Context) error {
 	var req dto.LoginRequest
 
