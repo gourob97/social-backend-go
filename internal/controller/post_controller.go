@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"net/http"
 	"social-backend/internal/apperrors"
 	"social-backend/internal/dto"
 	"social-backend/internal/response"
@@ -57,7 +56,7 @@ func (pc *PostController) CreatePostController(c echo.Context) error {
 		return response.ErrorResponse(c, err)
 	}
 
-	return response.SuccessResponse(c, http.StatusCreated, "Post created successfully", post)
+	return response.SuccessResponse(c, 201, "Post created successfully", post)
 }
 
 // GetPostController handles retrieving a specific post
@@ -83,7 +82,7 @@ func (pc *PostController) GetPostController(c echo.Context) error {
 		return response.ErrorResponse(c, err)
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, "Post retrieved successfully", post)
+	return response.SuccessResponse(c, 200, "Post retrieved successfully", post)
 }
 
 // GetUserPostsController handles retrieving posts by a specific user
@@ -113,7 +112,7 @@ func (pc *PostController) GetUserPostsController(c echo.Context) error {
 		return response.ErrorResponse(c, err)
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, "Posts retrieved successfully", posts)
+	return response.SuccessResponse(c, 200, "Posts retrieved successfully", posts)
 }
 
 // GetAllPostsController handles retrieving all posts
@@ -135,7 +134,7 @@ func (pc *PostController) GetAllPostsController(c echo.Context) error {
 		return response.ErrorResponse(c, err)
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, "Posts retrieved successfully", posts)
+	return response.SuccessResponse(c, 200, "Posts retrieved successfully", posts)
 }
 
 // UpdatePostController handles updating a post
@@ -181,7 +180,7 @@ func (pc *PostController) UpdatePostController(c echo.Context) error {
 		return response.ErrorResponse(c, err)
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, "Post updated successfully", post)
+	return response.SuccessResponse(c, 200, "Post updated successfully", post)
 }
 
 // DeletePostController handles deleting a post
@@ -215,5 +214,5 @@ func (pc *PostController) DeletePostController(c echo.Context) error {
 		return response.ErrorResponse(c, err)
 	}
 
-	return response.SuccessResponse(c, http.StatusOK, "Post deleted successfully", nil)
+	return response.SuccessResponse(c, 200, "Post deleted successfully", nil)
 }
